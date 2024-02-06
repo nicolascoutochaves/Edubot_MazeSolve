@@ -4,4 +4,4 @@ clean:
 	rm -f Main
 
 Main: Main.cpp
-	g++ -ofast Main Main.cpp -Wall -Wextra -Wpedantic	
+	g++ -o Main Main.cpp -O3 -Wall -Wextra -Wpedantic	
