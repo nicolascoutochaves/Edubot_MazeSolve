@@ -4,18 +4,14 @@
 
 #define SPEED 0.1 //Robot moving speed [-1, 1]
 #define DELAY 1000 //Edubot delay (adjust this to obtain adequate responsing behaviours)
+#define N_SONARS 7
+#define N_BUMPERS 4
+#define SOLVED_DISTANCE 10
 #define MIN_DISTANCE 0.07
 #define SIZE 0.18 //Edubot size
 #define MIN_DISPLACEMENT 0.5
 #define OPEN_HALL_DISTANCE 2
 using namespace std;
-
-//Enumerates each sonar based in Edubotlib sonar vector
-enum SONARS : int { L_90, L_60, L_30, FRONT, R_30, R_60, R_90 };
-
-//Compass directions:
-enum DIRECTIONS : int { E, NE, N, NW, W, SW, S, SE, LEFT_30 = -30, RIGHT_30 = 30, LEFT_60 = -60, RIGHT_60 = 60, L = -90, R = 90, };
-
 
 class MazeSolver {
 private:
@@ -25,11 +21,17 @@ private:
 	float speed = SPEED;
 	double x, y;
 	double prev_x, prev_y; //Previous x and y to calculate the total displacement
-	double x_buffer = 0, y_buffer = 0; //Previous x and y to calculate the displacement since the robot identifies an Open Path
+	double x_buffer, y_buffer; //Previous x and y to calculate the displacement since the robot identifies an Open Path
 	double displacement; //stores the total x and y displacement since the last turn;
+	//Enumerates each sonar based in Edubotlib sonar vector
+	enum SONARS : int { L_90, L_60, L_30, FRONT, R_30, R_60, R_90 };
+
+	//Compass directions:
+	enum DIRECTIONS : int { E, NE, N, NW, W, SW, S, SE, LEFT_30 = -30, RIGHT_30 = 30, LEFT_60 = -60, RIGHT_60 = 60, L = -90, R = 90, };
+
 
 public:
-	MazeSolver(EdubotLib* lib) : edubotLib(lib), CanRotate(false), IsMoving(false), prev_x(0.0), prev_y(0.0) {}
+	MazeSolver(EdubotLib* lib) : edubotLib(lib), CanRotate(false), IsMoving(false), prev_x(0.0), prev_y(0.0), x_buffer(0.0), y_buffer(0.0) {}
 
 	double Fix_Angle(double current) {
 		double compass[] = { 0.0, 90.0, 180.0, 270.0 };
@@ -151,7 +153,7 @@ public:
 			edubotLib->move(speed);
 			IsMoving = true;
 			if (speed < 0) {
-				edubotLib->sleepMilliseconds(300);
+				edubotLib->sleepMilliseconds(DELAY / 3);
 				edubotLib->stop();
 			}
 		}
@@ -176,7 +178,7 @@ public:
 
 
 			//Verify the four bumpers to deal with wall colisions
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < N_BUMPERS; i++) {
 				if (edubotLib->getBumper(i)) {
 					speed = (i < 2) ? -0.1 : 0.1;
 					IsMoving = false;
@@ -185,10 +187,10 @@ public:
 
 			//Compare all the sensors to verify if the robot is in outdoors
 			double walls_total_distance = 0.0;
-			for (int i = 0; i < 7; i++) {
+			for (int i = 0; i < N_SONARS; i++) {
 				walls_total_distance += edubotLib->getSonar(i);
 			}
-			if (walls_total_distance >= (9)) {
+			if (walls_total_distance >= SOLVED_DISTANCE) {
 				edubotLib->sleepMilliseconds(DELAY * 2);
 				edubotLib->stop();
 				break; //breaks the main loop
@@ -210,16 +212,15 @@ int main() {
 
 		while (showSensorsTimes > 0) {
 
-			// Waits for two seconds
-			edubotLib->sleepMilliseconds(200);
+			edubotLib->sleepMilliseconds(DELAY / 5);
 
 			// sonars
-			for (int i = 0; i < 7; i++) {
+			for (int i = 0; i < N_SONARS; i++) {
 				std::cout << "S" << i << ": " << edubotLib->getSonar(i) << "m, ";
 			}
 
 			// bumpers
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < N_BUMPERS; i++) {
 				std::cout << "B" << i << ": " << (edubotLib->getBumper(i) ? "true" : "false") << ", ";
 			}
 
