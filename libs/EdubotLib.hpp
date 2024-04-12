@@ -6,7 +6,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
-#include "Properties.hpp"
+#include "./Properties.hpp"
 
 #ifdef _WIN32
 
@@ -15,8 +15,8 @@
 #define _WIN32_WINNT 0x0501
 
 #include <windows.h>
-#include "SocketClientWindows.hpp"
-#include "mingw-thread/mingw.thread.h"
+#include "./SocketClientWindows.hpp"
+#include "./mingw-thread/mingw.thread.h"
 
 #else
 
